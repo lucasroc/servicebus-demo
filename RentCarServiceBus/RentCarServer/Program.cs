@@ -8,8 +8,10 @@ namespace RentCarServer
     class Program
     {
         const string QueueName = "bootcamp-queue";
+        const string TopicName = "bootcamp-topic";
+        const string SubscriptionName = "bootcamp-subs";
 
-        public async Task Run(string queueName)
+        public async Task RunQueue(string queueName)
         {
             Console.ReadKey();
             Console.WriteLine("Reading queue messages...");
@@ -21,7 +23,22 @@ namespace RentCarServer
             await Task.WhenAll(
                  Task.WhenAny(                    
                     Task.Delay(TimeSpan.FromSeconds(5))),                
-                Run(QueueName));
+                RunQueue(queueName));
+        }
+
+        public async Task RunTopic(string topicName, string subscription)
+        {
+            Console.ReadKey();
+            Console.WriteLine("Reading subscription messages...");
+
+            var topics = new Topics(topicName);
+
+            topics.ReceiveMessages(subscription);
+
+            await Task.WhenAll(
+                 Task.WhenAny(
+                    Task.Delay(TimeSpan.FromSeconds(5))),
+                RunTopic(topicName, subscription));
         }
 
         static void Main(string[] args)
@@ -31,7 +48,8 @@ namespace RentCarServer
                 Console.WriteLine("RentCarServer running!");
 
                 var app = new Program();
-                app.Run(QueueName);
+                //app.RunQueue(QueueName);
+                app.RunTopic(TopicName, SubscriptionName);
 
             }
             catch (Exception ex)

@@ -7,6 +7,7 @@ using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.ServiceBus.Core;
 using Newtonsoft.Json;
 using RentCarManager.Model;
+using RentCarManager.Helpers;
 
 namespace RentCarManager
 {
@@ -23,7 +24,7 @@ namespace RentCarManager
 
         public async Task<string> SendMessagesAsync<T>(T data, string label)
         {
-            var message = new Message(GetJsonBytes(data))
+            var message = new Message(MessageConverters.GetJsonBytes(data))
             {
                 ContentType = "application/json",
                 Label = label,
@@ -58,7 +59,7 @@ namespace RentCarManager
                     await receiverClient.DeadLetterAsync(message.SystemProperties.LockToken, reason);
                 }
 
-                messageBody = GetJsonMessageBody<RentResponse>(message.Body);
+                messageBody = MessageConverters.GetJsonMessageBody<RentResponse>(message.Body);
                 messageBody.MessageId = message.MessageId;
 
                 if (cancellationTokenRegister.IsCancellationRequested)
@@ -78,10 +79,6 @@ namespace RentCarManager
                 MaxConcurrentCalls = 1 //Indica a quantidade de processos concorrentes para processar a mensagem
             }
             );            
-        }
-
-        private byte[] GetJsonBytes(object data) => Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(data));
-        private T GetJsonMessageBody<T>(byte[] messageBody) =>
-            JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(messageBody));
+        }        
     }
 }
