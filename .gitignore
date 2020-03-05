@@ -1,0 +1,12 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs
+/RentCarServiceBus/.vs/RentCarServiceBus/v16
+/RentCarServiceBus/RentCarClient/obj
+/RentCarServiceBus/RentCarClient/bin/Debug/netcoreapp3.1
+/RentCarServiceBus/RentCarManager/obj
+/RentCarServiceBus/RentCarManager/bin/Debug/netstandard2.0
+/RentCarServiceBus/RentCarServer/obj
+/RentCarServiceBus/RentCarServer/bin/Debug/netcoreapp3.1

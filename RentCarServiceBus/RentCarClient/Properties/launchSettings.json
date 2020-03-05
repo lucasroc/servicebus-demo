@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "RentCarClient": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Users\\LucasRoccoFerreira\\source\\repos\\labs\\ServiceBus\\bootcamp\\RentCarServiceBus\\RentCarClient\\bin\\Debug\\netcoreapp3.1\\RentCarClient.exe",
+      "commandLineArgs": "-name \"Rocco\" -firstName \"Lucas\""
+    }
+  }
+}
