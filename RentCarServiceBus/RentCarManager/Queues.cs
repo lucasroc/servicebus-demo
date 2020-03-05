@@ -30,31 +30,21 @@ namespace RentCarManager
                 MessageId = Guid.NewGuid().ToString()
             };
 
-            var messageSender = new MessageSender(_connectionString, _queueName);
+            var senderClient = new QueueClient(_connectionString, _queueName);
 
-            await messageSender.SendAsync(message);
+            await senderClient.SendAsync(message);
 
             return $"Mensagem enviada: {message.Label}. Mensagem Id: {message.MessageId}";
         }
 
-        public async Task<RentResponse> ReceiveMessagesAsync(string label, CancellationToken cancellationToken)
+        public void ReceiveMessagesAsync(string label)
         {
-            var messageReceiver = new MessageReceiver(_connectionString, _queueName, ReceiveMode.PeekLock);
-
-            var doneReceiving = new TaskCompletionSource<bool>();
-            // close the receiver and factory when the CancellationToken fires 
-            cancellationToken.Register(
-                async () =>
-                {
-                    await messageReceiver.CloseAsync();
-                    doneReceiving.SetResult(true);
-                }
-            );
+            var receiverClient = new QueueClient(_connectionString, _queueName, ReceiveMode.PeekLock);
 
             var messageBody = new RentResponse { ResponseMessage = "Nenhuma mensagem disponível" };
 
             // register the RegisterMessageHandler callback
-            messageReceiver.RegisterMessageHandler(async (message, cancellationTokenRegister) =>
+            receiverClient.RegisterMessageHandler(async (message, cancellationTokenRegister) =>
             {
                 var isInvalidMessageLabel = string.IsNullOrEmpty(message.Label) || !message.Label.Equals(label,
                     StringComparison.InvariantCultureIgnoreCase);
@@ -65,26 +55,29 @@ namespace RentCarManager
 
                     messageBody.ResponseMessage = reason;
 
-                    await messageReceiver.DeadLetterAsync(message.SystemProperties.LockToken, reason);
+                    await receiverClient.DeadLetterAsync(message.SystemProperties.LockToken, reason);
                 }
 
-                messageBody = messageBody ?? GetJsonMessageBody<RentResponse>(message.Body);
+                messageBody = GetJsonMessageBody<RentResponse>(message.Body);
+                messageBody.MessageId = message.MessageId;
 
-                await messageReceiver.CompleteAsync(message.SystemProperties.LockToken);
+                if (cancellationTokenRegister.IsCancellationRequested)
+                    await receiverClient.AbandonAsync(message.SystemProperties.LockToken);
+                else
+                    await receiverClient.CompleteAsync(message.SystemProperties.LockToken);
+
+                Console.WriteLine(messageBody);
+
             }, new MessageHandlerOptions((o) =>
             {
-                messageBody.ResponseMessage = $"Erro. Mensagem: {o.Exception?.Message}, Entidade: {o.ExceptionReceivedContext.EntityPath}";
+                Console.WriteLine($"Erro. Mensagem: {o.Exception?.Message}, Entidade: {o.ExceptionReceivedContext.EntityPath}");
                 return Task.CompletedTask;
             })
             {
-                AutoComplete = false,
-                MaxConcurrentCalls = 1
+                AutoComplete = false, //Indica que deve ser terminado pelo callback
+                MaxConcurrentCalls = 1 //Indica a quantidade de processos concorrentes para processar a mensagem
             }
-            );
-
-            await doneReceiving.Task;
-
-            return messageBody;
+            );            
         }
 
         private byte[] GetJsonBytes(object data) => Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(data));

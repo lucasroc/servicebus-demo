@@ -10,72 +10,70 @@ namespace RentCarClient
     {
         const string QueueName = "bootcamp-queue";
 
-        public async Task Run(string queueName, string name, string firstName)
+        static int RequestIndex = 0;
+
+        public async Task Run(string queueName)
         {
+            Console.ReadKey();
+            Console.WriteLine("Sending messages...");
+
             var queues = new Queues(queueName);
 
-            var request =
-                new RentRequest
-                {
-                    Name = name,
-                    FirstName = firstName,
-                    Description = "Solicitando uma reserva..."
-                };
+            var requestsList = GetRentRequests();
 
-            var sendTask = queues.SendMessagesAsync(request, "Reservas");
+            var sendTask = queues.SendMessagesAsync(requestsList[RequestIndex], "Reservas");
+
+            //Gerência o index
+            RequestIndex++;
+            RequestIndex = RequestIndex < requestsList.Length ? RequestIndex : 0;
 
             await Task.WhenAll(
-                 Task.WhenAny(
-                     Task.Run(() => Console.WriteLine(sendTask.Result))
-                 )
-                 .ContinueWith((t) => sendTask)
+                     Task.WhenAny(
+                         Task.Run(() => Console.WriteLine(sendTask.Result))
+                     )
+                     .ContinueWith((t) => sendTask),
+                    Run(QueueName)
                 );
         }
 
-        static async Task Main(string[] args)
+        static void Main(string[] args)
         {
             try
             {
                 Console.WriteLine("RentCarClient running!");
                 Console.ReadKey();
-
-                var name = string.Empty;
-                var firstName = string.Empty;
-
-                for (int i = 0; i < args.Length; i++)
-                {
-                    switch (args[i])
-                    {
-                        case "-name":
-                            var nameArg = args[i + 1];
-                            Console.WriteLine($"Nome: {nameArg}");
-                            name = nameArg;
-                            break;
-                        case "-firstName":
-                            var firstNameArg = args[i + 1];
-                            Console.WriteLine($"Primeiro Nome: {firstNameArg}");
-                            firstName = firstNameArg;
-                            break;
-                        default:
-                            break;
-                    }
-                }
-
-                var hasNoParameters = string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(firstName);
-                if (hasNoParameters)
-                {
-                    Console.WriteLine("Não existe a opção informada. -name para Nome e -firstName para Primeiro Nome");
-                    Console.ReadKey();
-                    return;
-                }
-
+                
                 var app = new Program();
-                await app.Run(QueueName, name, firstName);
+                app.Run(QueueName);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Erro: {ex.ToString()}");
             }
+        }
+
+        private RentRequest[] GetRentRequests()
+        {
+            return new RentRequest[] {
+                new RentRequest
+                {
+                    Name = "Rocco",
+                    FirstName = "Lucas",
+                    Description = "Solicitando uma reserva..."
+                },
+                new RentRequest
+                {
+                    Name = "Ferreira",
+                    FirstName = "João",
+                    Description = "Solicitando uma reserva..."
+                },
+                new RentRequest
+                {
+                    Name = "Matos",
+                    FirstName = "André",
+                    Description = "Solicitando uma reserva..."
+                }
+            };
         }
     }
 }

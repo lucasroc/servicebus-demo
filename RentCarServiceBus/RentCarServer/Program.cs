@@ -11,28 +11,27 @@ namespace RentCarServer
 
         public async Task Run(string queueName)
         {
-            var cts = new CancellationTokenSource();
+            Console.ReadKey();
+            Console.WriteLine("Reading queue messages...");
 
             var queues = new Queues(queueName);
 
-            var receiveTask = queues.ReceiveMessagesAsync("Reservas", cts.Token);
+            queues.ReceiveMessagesAsync("Reservas");
 
             await Task.WhenAll(
-                 Task.WhenAny(
-                    Task.Run(() => Console.WriteLine($"Nome: {receiveTask.Result}")),
-                    Task.Delay(TimeSpan.FromSeconds(10)))
-                    .ContinueWith((t) => cts.Cancel()),
-                receiveTask);
+                 Task.WhenAny(                    
+                    Task.Delay(TimeSpan.FromSeconds(5))),                
+                Run(QueueName));
         }
 
-        static async Task Main(string[] args)
+        static void Main(string[] args)
         {
             try
             {
                 Console.WriteLine("RentCarServer running!");
 
                 var app = new Program();
-                await app.Run(QueueName);
+                app.Run(QueueName);
 
             }
             catch (Exception ex)
