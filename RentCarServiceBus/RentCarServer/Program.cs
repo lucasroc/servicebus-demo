@@ -9,7 +9,7 @@ namespace RentCarServer
     {
         const string QueueName = "bootcamp-queue";
         const string TopicName = "bootcamp-topic";
-        const string SubscriptionName = "bootcamp-subs";
+        const string SubscriptionName = "bootcamp-subs2";
 
         public async Task RunQueue(string queueName)
         {

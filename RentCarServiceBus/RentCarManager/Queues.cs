@@ -40,6 +40,11 @@ namespace RentCarManager
 
         public void ReceiveMessagesAsync(string label)
         {
+            //ReceiveMode:
+            //Peek-lock: When operating in this mode, the client sends a request to receive a message from Service Bus. 
+            // After the client has received the message, it sends a request to complete the message.
+            //ReceiveAndDelete: both steps are combined in a single request. These steps reduce the overall number of operations, 
+            // and can improve the overall message throughput. This performance gain comes at the risk of losing messages.
             var receiverClient = new QueueClient(_connectionString, _queueName, ReceiveMode.PeekLock);
 
             var messageBody = new RentResponse { ResponseMessage = "Nenhuma mensagem disponível" };
