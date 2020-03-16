@@ -69,8 +69,8 @@ namespace RentCarClient
                 Console.ReadKey();
                 
                 var app = new Program();
-                //app.RunQueue(QueueName);
-                app.RunTopic(TopicName);
+                app.RunQueue(QueueName);
+                //app.RunTopic(TopicName);
             }
             catch (Exception ex)
             {

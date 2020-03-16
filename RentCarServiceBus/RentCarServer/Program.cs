@@ -48,8 +48,8 @@ namespace RentCarServer
                 Console.WriteLine("RentCarServer running!");
 
                 var app = new Program();
-                //app.RunQueue(QueueName);
-                app.RunTopic(TopicName, SubscriptionName);
+                app.RunQueue(QueueName);
+                //app.RunTopic(TopicName, SubscriptionName);
 
             }
             catch (Exception ex)
